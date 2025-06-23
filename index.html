@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ExoVM Web iOS</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    window.coi = {
+      // Prevent automatic page reloads from the service worker
+      doReload: () => {}
+    };
+  </script>
   <script src="emulator/coi-serviceworker.js"></script>
 </head>
 <body>
