@@ -111,6 +111,8 @@ startBtn.onclick=async()=>{
     return;
   }
   Module = { preRun: [], arguments: [] };
+  Module.print = logMsg;
+  Module.printErr = logMsg;
   let master, slave;
   if(!graphicsMode.checked){
     ({ master, slave } = openpty());
@@ -136,6 +138,7 @@ startBtn.onclick=async()=>{
     setInterval(()=>Module.FS.syncfs(false,()=>logMsg('autosaved')),30000);
   }];
   Module.arguments=[
+    '-d','guest_errors', '-D','/dev/stderr',
     '-m', currentVM.ram+'M','-accel','tcg,tb-size=500',
     '-cdrom','/img/user.iso'
   ];
