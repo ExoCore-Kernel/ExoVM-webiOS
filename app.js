@@ -16,8 +16,46 @@ const createBtn = document.getElementById('create-vm');
 const vmNameInput = document.getElementById('vm-name');
 const startBtn = document.getElementById('start-vm');
 const isoUpload = document.getElementById('iso-upload');
+const graphicsMode = document.getElementById('graphics-mode');
+const screen = document.getElementById('screen');
 const runRamTestBtn = document.getElementById('run-ramtest');
 const log = document.getElementById('log');
+
+let isoDBPromise = null;
+
+function openIsoDB(){
+  if(!isoDBPromise){
+    isoDBPromise = new Promise((resolve,reject)=>{
+      const req = indexedDB.open('iso-storage',1);
+      req.onupgradeneeded = () => {
+        req.result.createObjectStore('isos');
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  return isoDBPromise;
+}
+
+async function saveIso(buf){
+  const db = await openIsoDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction('isos','readwrite');
+    tx.objectStore('isos').put(buf,'uploaded');
+    tx.oncomplete=()=>res();
+    tx.onerror=e=>rej(e.target.error);
+  });
+}
+
+async function loadIso(){
+  const db = await openIsoDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction('isos','readonly');
+    const rq = tx.objectStore('isos').get('uploaded');
+    rq.onsuccess=()=>res(rq.result);
+    rq.onerror=e=>rej(e.target.error);
+  });
+}
 
 function logMsg(msg){
   log.textContent += msg + '\n';
@@ -56,21 +94,41 @@ createBtn.onclick=()=>{
   }
 };
 
+isoUpload.addEventListener('change', async () => {
+  if(!isoUpload.files[0]) return;
+  startBtn.disabled = true;
+  logMsg('Saving ISO...');
+  const buf = await isoUpload.files[0].arrayBuffer();
+  await saveIso(buf);
+  logMsg('ISO saved');
+  startBtn.disabled = false;
+});
+
 startBtn.onclick=async()=>{
-  if(!isoUpload.files[0]){
-    alert('Upload an ISO or IMG');
+  let isoBuffer = await loadIso();
+  if(!isoBuffer){
+    alert('Upload an ISO or IMG and wait for it to be saved');
     return;
   }
-  const buf=await isoUpload.files[0].arrayBuffer();
   Module = { preRun: [], arguments: [] };
-  const { master, slave } = openpty();
-  term = new Terminal();
-  term.open(document.getElementById('terminal'));
-  term.loadAddon(master);
-  Module.pty = slave;
+  let master, slave;
+  if(!graphicsMode.checked){
+    ({ master, slave } = openpty());
+    term = new Terminal();
+    term.open(document.getElementById('terminal'));
+    term.loadAddon(master);
+    Module.pty = slave;
+    screen.classList.add('hidden');
+    document.getElementById('terminal').classList.remove('hidden');
+  } else {
+    Module.canvas = screen;
+    document.getElementById('terminal').classList.add('hidden');
+    screen.classList.remove('hidden');
+  }
   Module.preRun.push(()=>{
     Module.FS.mkdir('/img');
-    Module.FS.writeFile('/img/user.iso', new Uint8Array(buf));
+    Module.FS.writeFile('/img/user.iso', new Uint8Array(isoBuffer));
+    isoBuffer = null;
     Module.FS.mkdir('/persistent');
     Module.FS.mount(IDBFS,{},'/persistent');
   });
@@ -78,9 +136,12 @@ startBtn.onclick=async()=>{
     setInterval(()=>Module.FS.syncfs(false,()=>logMsg('autosaved')),30000);
   }];
   Module.arguments=[
-    '-nographic','-m', currentVM.ram+'M','-accel','tcg,tb-size=500',
+    '-m', currentVM.ram+'M','-accel','tcg,tb-size=500',
     '-cdrom','/img/user.iso'
   ];
+  if(!graphicsMode.checked){
+    Module.arguments.unshift('-nographic');
+  }
   Module.locateFile=(path,prefix)=>'./emulator/'+path;
   Module.mainScriptUrlOrBlob='./emulator/out.js';
   logMsg('Starting VM...');

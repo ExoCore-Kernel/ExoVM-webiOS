@@ -24,10 +24,12 @@
   <div id="controls" class="hidden">
     <h2 id="current-vm"></h2>
     <input type="file" id="iso-upload" accept=".iso,.img">
-    <button id="start-vm">Start VM</button>
+    <label><input type="checkbox" id="graphics-mode"> Enable Graphics Mode</label>
+    <button id="start-vm" disabled>Start VM</button>
     <button id="run-ramtest">Run RAM Test</button>
     <pre id="log"></pre>
     <div id="terminal" class="terminal"></div>
+    <canvas id="screen" class="screen hidden"></canvas>
   </div>
   <script type="module" src="app.js"></script>
 </body>
