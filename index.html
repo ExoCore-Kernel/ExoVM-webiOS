@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExoVM Web iOS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css">
+  <script src="emulator/coi-serviceworker.js"></script>
+</head>
+<body>
+  <header>
+    <h1>ExoVM Web iOS</h1>
+  </header>
+  <main>
+    <section id="manager">
+      <h2>Virtual Machines</h2>
+      <div id="vm-list"></div>
+      <div class="new-vm">
+        <input id="vm-name" placeholder="New VM name">
+        <button id="create-vm">Create VM</button>
+      </div>
+    </section>
+    <section id="controls" class="hidden">
+      <button id="back">&larr; Back</button>
+      <h2 id="current-vm"></h2>
+      <input type="file" id="iso-upload" accept=".iso,.img">
+      <div class="btn-row">
+        <button id="start-vm">Start VM</button>
+        <button id="run-ramtest">Run RAM Test</button>
+      </div>
+      <pre id="log"></pre>
+      <div id="terminal" class="terminal"></div>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
