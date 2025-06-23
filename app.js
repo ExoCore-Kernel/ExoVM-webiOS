@@ -37,11 +37,11 @@ function openIsoDB(){
   return isoDBPromise;
 }
 
-async function saveIso(buf){
+async function saveIso(file){
   const db = await openIsoDB();
   return new Promise((res,rej)=>{
     const tx = db.transaction('isos','readwrite');
-    tx.objectStore('isos').put(buf,'uploaded');
+    tx.objectStore('isos').put(file,'uploaded');
     tx.oncomplete=()=>res();
     tx.onerror=e=>rej(e.target.error);
   });
@@ -98,18 +98,18 @@ isoUpload.addEventListener('change', async () => {
   if(!isoUpload.files[0]) return;
   startBtn.disabled = true;
   logMsg('Saving ISO...');
-  const buf = await isoUpload.files[0].arrayBuffer();
-  await saveIso(buf);
+  await saveIso(isoUpload.files[0]);
   logMsg('ISO saved');
   startBtn.disabled = false;
 });
 
 startBtn.onclick=async()=>{
-  let isoBuffer = await loadIso();
-  if(!isoBuffer){
+  let isoBlob = await loadIso();
+  if(!isoBlob){
     alert('Upload an ISO or IMG and wait for it to be saved');
     return;
   }
+  let isoBuffer = await isoBlob.arrayBuffer();
   Module = { preRun: [], arguments: [] };
   Module.print = logMsg;
   Module.printErr = logMsg;
