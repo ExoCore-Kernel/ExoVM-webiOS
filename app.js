@@ -1,6 +1,6 @@
 import initEmscriptenModule from './emulator/out.js';
-import 'https://unpkg.com/xterm@5.3.0/lib/xterm.js';
-import 'https://unpkg.com/xterm-pty/index.js';
+import './vendor/xterm.js';
+import './vendor/xterm-pty.js';
 
 let Module = { preRun: [], arguments: [] };
 let term;
