@@ -55,3 +55,11 @@ input {
   overflow: auto;
   padding: 5px;
 }
+
+.screen {
+  width: 100%;
+  height: 60vh;
+  border: 1px solid #444;
+  margin-top: 10px;
+  background: #000;
+}
